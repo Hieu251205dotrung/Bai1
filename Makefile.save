@@ -1,0 +1,27 @@
+CC = arm-none-eabi-gcc
+OBJCOPY = arm-none-eabi-objcopy
+
+CFLAGS = -mcpu=cortex-m3 -mthumb -O0
+LDFLAGS = -nostdlib
+
+PROGRAMS := $(basename $(wildcard Bai*/*.c))
+
+.PHONY: all clean
+
+all: $(PROGRAMS:%=%.bin)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%/main.o: startup.s
+	$(CC) $(CFLAGS) -c startup.s -o $@
+
+%.elf: %.o %/main.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -T stm32f103c8.ld $^ -o $@
+
+%.bin: %.elf
+	$(OBJCOPY) -O binary $< $@
+
+clean:
+	rm -f Bai*/*.o Bai*/*.elf Bai*/*.bin
+
